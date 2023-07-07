@@ -1,0 +1,189 @@
+	    What Is White & Black Phantoms Executing INSPECTOR?
+	   ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+		Short Description of Tools and Capabilities.
+	       ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+			    I. General Information.
+			   ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    White & Black Phantoms Executing INSPECTOR is a polyfunctional de-
+bugger. It uses 250Kb of disk space in 5 files, but absolutely neces-
+sary for work only two files (55Kb on disk). INSPECTOR uses 64Kb of
+conventional memory while working or being resident; it uses extended
+memory for internal buffers whether the XMS driver presents. INSPECTOR
+works with all PC-compatible computers based on any of 80x86 micropro-
+cessors; supports all popular video systems; receives input from both
+keyboard or mouse. Minimum software requirement is a MS-DOS 2.0
+    INSPECTOR may be used for many purposes: debugging written prog-
+rams; creating short programs with no necessity for compiling; viewing
+disk contents; creating listings for parts of conventional memory;
+performing control on hardware and software in low level. All informa-
+tion INSPECTOR represents in two formats: as data bytes (hexadecimal
+numbers or ASCII characters) or as assembly-language instructions.
+Small size (INSPECTOR is written in a .COM format) leaves a large spa-
+ce for debugging programs. INSPECTOR is designed as a window system,
+works in text mode and keeps user screen in its internal buffers (this
+screen may be displayed at any time).
+    White & Black Phantoms Executing INSPECTOR is a powerful assistant
+in inspecting the executing process and debugging prorgams. For user
+comfort the majority of options may be called both from menu and from
+keyboard. Some additions can be called only from keyboard.
+    INSPECTOR has a number of internal options that are accessable to
+change, such as active colors; INSPECTOR active page; display swapping
+(smart is recommended); saved screen size (the size of video buffer
+part that INSPECTOR considers to be user's and saves). All options may
+be changed by a SETUP program.
+    FILES in this package of the INSPECTOR:
+
+	- INSPECT.COM --- the main program
+	- SETUP.COM ----- Inspector configurator
+	- INSP.CFG ------ the configuration file
+	- INSP.HLP ------ help file
+	- INTS.DAT ------ data file
+	- INSPECT.TXT --- Inspector manual
+	- README -------- basic information file
+	- LICENSE ------- license agreement file
+	- SRC\INSPECT\*.* --- source code for Executing Inspector
+	- SRC\SETUP\*.* ----- source code for setup program.
+
+
+
+		    II. Short Description of Services.
+		   ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    White & Black Phantoms Executing INSPECTOR provides a number of
+services that are supposed to make inspecting easy and pleasant work.
+This contains tools for inspecting, I/O, view/edit, hardware control
+and some others. Here is a short summary:
+
+    - General Services. Services for loading and saving programs and
+cooperation with operating system: Load program to debug; Write pro-
+gram to disk (up to 64Kb); Load sector into memory; Write sector from
+memory; DOS Shell; TSR.
+
+    - I/O Services. INSPECTOR supports I/O with hardware ports with
+single read/write and consequent read/write (while a number of bytes
+from contiguous memory area are written to a single port or filled by
+the values read from the single port).
+
+    - View/Edit Services. INSPECTOR gives tools to view/edit memory
+and disk content. This includes dump, unassemble, view CPU state (re-
+gisters with flags) for view, entering data in hexadecimal numbers or
+as assembly-language instructions. See NEW FUNCTIONS about View/Edit
+disk services. INSPECTOR supports view output to screen and to prin-
+ter (listings) - see NEW FUNCTIONS.
+
+    - Inspect Services. INSPECTOR supports Breakpoints use (up to 255
+at a time) put by user directly or by specifying address (Go Until).
+For trapping control while program is executed one can use breakpo-
+int, Ctrl-Break press (if interrupts are enabled) or special key com-
+bination press while INSPECTOR is resident in memory. For programs
+loaded in MS-DOS environment INSPECTOR supports entering command-line
+arguments. For debugging INSPECTOR provides Trace in (including in-
+terrupts) - single instruction execution and Single Step service (the
+same except that procedure, interrupt execution, REP and LOOPxx loops
+are considered to be a single step.
+    For a special services there is an Immediate Execution (see NEW
+FUNCTIONS).
+
+    - String Operations. INSPECTOR can perform copying and comparing
+strings, search for data byte, string or assemble-language instructi-
+on without a need to write special subroutines.
+
+    - Information Services. INSPECTOR has a help that gives short in-
+formation about INSPECTOR current state, error situations, INSPECTOR
+itself and about White & Black Phantoms. There is also an interrupt
+info service that gives current location and short information about
+interrupt with the specified number.
+
+
+
+			III. New Functions.
+		       ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+    There are several principally new for debuggers functions that Whi-
+te & Black Phantoms Executing INSPECTOR provides to its users.
+
+    - Immediate Execution. Executes single assemble-language instruc-
+tion without write it to memory. May be very useful for a small task
+while program is loaded into memory and changing memory contents is
+unpleasant (for example, to switch video mode one can use this option
+rather than write special subroutine). The instuction "has no address",
+so relative jumps (Jx NNNN, JMP NNNN, LOOPxx, CALL NNNN) are obayed
+and should probably  hang the system when tried to be executed.
+
+    - View Disk. Lets user view and edit disk contents on any valid
+logical drive. All data may be represented in two formats: unassemble
+and dump (hexadecimal numbers and ASCII characters representation).
+All changes may be made by writing assemble-language instructions or
+by entering hexadecimal numbers. All changes are not written to disk
+unless user specify the special command. Unassemble and Dump windows
+are not connected, so user may view/edit two different parts of disk
+in this option.
+
+    - View file. Lets user view and edit file contents. All said about
+the View Disk service is actual to View File except that all the chan-
+ges are written to disk immediately.
+
+    - Fill Port. Fills single port by values from contiguous memory
+area with consequent writes.
+
+    - Fill From Port. Fills contiguous memory area by consequent
+reads from single port.
+
+    - Print. This option allows user to make listings from any valid
+directly-accessable memory. INSPECTOR can print memory content in two
+ways: as data bytes (in hexadecimal-numbers and ASCII characters re-
+   presentation) or as assemble-language instructions. In both cases the
+memory address is also printed in listing. This option may be very
+useful for inspecting the programs that do not allow to trace them or
+to use breakpoints.
+
+
+			    IV. Compatibility.
+			   ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+	INSPECTOR was written in 8086 assembly-language codes and works
+on all compatible machines; all video systems that support one of mo-
+nochrome or CGA text modes are supported by INSPECTOR. It will work on most 
+V86 emulation environments. INSPECTOR requires minimum MS-DOS version 2.0, 
+uses extended memory if XMS driver present and supports mouse input if 
+MS-MOUSE driver presents (all this cases INSPECTOR checks automatically).
+	Source code can be compiled with MASM 6.0 or higher (compatible)
+version.
+
+
+			    V. License.
+			   ÄÄÄÄÄÄÄÄÄÄÄÄÄ
+	Please, read carefully the included License file. It defines terms
+and conditions for use of White & Black Phantoms Executing Inspector. Not
+reading license doesn't allow use in violation of license terms.
+	Shortly, this release of Inspector is free. It's "as is",
+free of charge and of any liabilities. Authors Vadim Drubetsky (Black Phantom) 
+and Artemy Voikhansky (White Phantom) maintain copyright (c), 1993/1994 on 
+Inspector, as on whole and on all parts.
+
+
+		VI. From Authors (written by Black Phantom. 1/4/99).
+	      ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+	Inspector was a joint development of White & Black Phantoms. It was
+initiated by unsatisfaction of authors with debuggers available at that time.
+Therefore, it holds traces of personal preferences of authors. At some time
+we tried to find a commercial application for it but couldn't. It was
+abandoned for several years and now we decided to release it for free.
+	Every program has bugs. The primary purpose of Inspector is to help
+finding and fixing bugs. Of course, it contains bugs itself. And of course,
+programs that were abandoned for years tend to accumulate bugs. I spent last
+several days finding and fixing the most annoying. Certainly there are others
+I haven't found. They can be reported to the contact address below.
+	The same applies to the manual and most of this file. They were 
+written about 5 years ago and may be partially outdated. If you find 
+something really bad, don't hesitate to write authors.
+	There are a lot of things we'd do another way today. Design of the
+project had had its reasons but is probably far from the best. But the
+direction is not promising nowadays; so we will fix only things that don't 
+require any serious development.
+
+
+				VII. Contacts.
+			       ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ
+
+Authors are available at E-mail addresses:
+	wb_phantoms@hotmail.com
+	wbphantoms@xoommail.com

@@ -1,0 +1,6 @@
+setup.com: setup.obj
+	LINK /TINY setup.obj;
+	copy setup.com ..\..\bin
+
+setup.obj: setup.asm
+	ML /AT /c setup.asm

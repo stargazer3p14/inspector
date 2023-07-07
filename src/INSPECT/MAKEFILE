@@ -1,0 +1,6 @@
+inspect.com: inspect.obj
+	LINK /TINY inspect.obj;
+	copy inspect.com ..\..\bin
+
+inspect.obj: inspect.asm
+	ML /AT /c inspect.asm

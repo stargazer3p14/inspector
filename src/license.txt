@@ -1,0 +1,35 @@
+		Executing Inspector License.
+		============================
+
+	0. This license defines terms and conditions as well as some other aspects for use of White and Black Phantoms
+Executing Inspector (further: Inspector). The term "Inspector" refers to full original package or sub-package (source code,
+binaries, source code and binaries). Cases where partial distribution of Inspector is referred to are explicitly specified. 
+You (either an individual or a single entity) are not required to sign or somehow acknowledge your use of Inspector. However
+your use of Inspector must fully comply to this license; any misuse automatically terminates this license and revokes from 
+you any right to further use Inspector. You have no other rights on Inspector except for non-exclusive rights listed here.
+
+	1. COPYING. You may make any number of unmodified copies of Inspector for any purpose. You may make any number of modified copies for your own use. Distribution of modified copies fall under terms of PARTIAL DISTRIBUTION (2).
+
+	2. PARTIAL DISTRIBUTION. Any partial distribution of Inspector must include a notice saying that it is
+"Copyright (c) Black Phantom AKA Vadim Drubetsky, White Phantom AKA Artemy Voikhansky, 1993/1994, Middle East."
+Any product or software package including Inspector or part of it must include such notice.
+
+	3. DISTRIBUTION WITH DIFFERENT TERMS. Inspector may be distributed, leased or rented under different terms than
+defined by this license provided that:
+	 a) you (distributor) acquired your copy in compliance to this license
+	 b) your license is not less restrictive than this one, i.e. it doesn't allow anything prohibited by this license
+	 c) if your license allows further redistribution it must enforce inclusion of acknowledgement notice (2) in all
+distributions.
+
+	4. TERMS OF USE. Inspector's intended purpose is to assist in development, debugging and testing software for DOS and
+in studying assembler language, x86 CPU and PC architecture. Any other use is hereby permitted, except for use that may
+cause limitation of rights or damage for third parties that didn't have to agree to this license.
+
+	5. LIMITATION OF LIABILITY. In no event, except for when it is explicitly stated by the applicable law, shall White &
+Black Phantoms be liable for any special, incidental, indirect, or consequential damages (including but not limited to profit
+loss, business interruption, loss of business information, or any other pecuniary loss) arising out of the use of or
+inability to use Inspector, even if they has been advised of the possibility of such damages.
+
+
+-----
+All trademarks, registered trademarks and reserved words belong to their respective owners.

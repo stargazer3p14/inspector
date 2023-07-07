@@ -1,0 +1,1884 @@
+include     phantom.asm
+;locals
+;jumps
+assemble proc           near
+	cld
+	push        bp
+	mov         bp,sp
+	mov         dx,[bp+4]   ; DX - Executing address
+	mov         di,[bp+6]   ; DI - Output string
+	mov         si,[bp+8]   ; SI - Source string
+	pop         bp
+
+	mov         bitsize,16
+	mov         cmdsize,16
+	mov         mov_flg, 0
+	mov         segreg, 0
+	mov         another_fl, 0
+
+	mov	ax, 100
+	push        ax
+	push        si
+	call        cnv
+
+	mov	ax, 100
+	push        ax
+	push        si
+	call        cnvtab
+
+	mov	ax, 100
+	push        ax
+	push        si
+	call        spacebar
+
+	mov	cx, 100
+	call	cnvspc2
+
+	push        di
+	mov         cx,10
+	mov         al,0
+rep         stosb
+	pop         di
+
+	push        di
+	mov         flbp, 0
+	mov         fl1, 16h
+	call        chk_no_prm
+	jnc         okay
+	mov         fl1,0
+	call        chk_cnd_jmp_
+	jnc         okay
+	call        chk_1_prm
+	jnc         okay
+	call        chk_num_prm
+	jnc         okay
+	call        chk_uncnd
+	jnc         okay
+	push        si
+	mov         flbp,1
+	push        bp
+	call        chk_diff
+	pop         bp
+	pop         si
+	jnc         okay
+	call        chk_spec
+	jnc         okay
+	pop         di
+	stc
+	ret         6
+okay:
+	pop         di
+	pushf
+	call        transform
+	popf
+	ret         6
+fl1         db          16h
+chk_no_prm proc         near
+	push        dx
+	mov	ax, offset cnoprm3
+	push	ax
+	xor         cx,cx
+	mov         bx,offset no_prm3
+	mov         ax,3
+	mov         dx,24
+	call        loop_cmd
+	jc          cnt1
+	call        cmd_free
+	jc          cnt1
+	jmp         complete
+cnt1:
+	pop         dx
+	mov	ax, offset cnoprm4
+	push        ax
+	xor         cx,cx
+	mov         bx,offset no_prm4
+	mov         ax,4
+	mov         dx,15
+	call        loop_cmd
+	jc          cnt2
+	call        cmd_free
+	jnc         complete
+cnt2:
+	pop         dx
+	mov	ax, offset cnoprm5
+	push	ax
+	xor         cx,cx
+	mov         bx,offset no_prm5
+	mov         ax,5
+	mov         dx,26
+	call        loop_cmd
+	jc          cnt3
+	call        cmd_free
+	jnc         complete
+cnt3:
+	pop         dx
+	mov	ax, offset cnoprm6
+	push	ax
+	xor         cx,cx
+	mov         bx,offset no_prm6
+	mov         ax,6
+	mov         dx,7
+	call        loop_cmd
+	jc          cnt4
+	call        cmd_free
+	jnc         complete
+cnt4:
+	pop         dx
+	mov	ax, offset cnoprm7
+	push	ax
+	xor         cx,cx
+	mov         bx,offset no_prm7
+	mov         ax,7
+	mov         dx,4
+	call        loop_cmd
+	jc          @@cnt5
+	call        cmd_free
+	jnc         complete
+@@cnt5:
+	pop         dx
+	pop         dx
+	stc
+	ret
+complete:
+	pop         bx
+	mov         si,cx
+	mov         dx,word ptr[bx+si]
+	mov         word ptr[di+1],dx
+	cmp         dh,0
+	je          one_byte
+	mov         byte ptr[di],2
+	pop         dx
+	ret
+one_byte:
+	mov         byte ptr[di],1
+	pop         dx
+	ret
+
+loop_cmd proc           near
+	push        bx
+	push        si
+	push        ax
+	call        strcmp
+	jnc         _found
+	inc         cx
+	add         bx,ax
+	cmp         fl1,16h
+	jne         $+3
+	inc         bx
+	cmp         cx,dx
+	jbe         loop_cmd
+	stc
+	ret
+_found:
+	add         cx,cx
+	clc
+	ret
+loop_cmd endp
+
+chk_no_prm endp
+
+chk_cnd_jmp_ proc near
+	push        dx
+	mov	ax, offset cjmp2
+	push	ax
+	xor         cx,cx
+	mov         bx,offset jmps2
+	mov         ax,3
+	mov         dx,10
+	call        loop_cmd
+	jc          cnt5
+	dec         ax
+	call        cmd_free
+	jc          $ + 5
+	jmp         cjmp
+cnt5:
+	pop         dx
+	mov	ax, offset cjmp3
+	push	ax
+	xor         cx,cx
+	mov         bx,offset jmps3
+	mov         ax,4
+	mov         dx,16
+	call        loop_cmd
+	jc          cnt6
+	dec         ax
+	call        cmd_free
+	jnc         cjmp
+cnt6:
+	pop         dx
+	mov	ax, offset cjmp4
+	push	ax
+	xor         cx,cx
+	mov         bx,offset jmps4
+	mov         ax,5
+	mov         dx,5
+	call        loop_cmd
+	jc          cnt7
+	dec         ax
+	call        cmd_free
+	jnc         cjmp
+cnt7:
+	pop         dx
+	mov	ax, offset cjmp5
+	push	ax
+	xor         cx,cx
+	mov         bx,offset jmps5
+	mov         ax,6
+	mov         dx,2
+	call        loop_cmd
+	jc          cnt8
+	dec         ax
+	call        cmd_free
+	jnc         cjmp
+cnt8:
+	pop         dx
+	mov	ax, offset cjmp6
+	push	ax
+	xor         cx,cx
+	mov         bx,offset jmps6
+	mov         ax,7
+	mov         dx,2
+	call        loop_cmd
+	jc          cnt9
+	dec         ax
+	call        cmd_free
+	jnc         cjmp
+cnt9:
+	pop         dx
+	pop         dx
+	stc
+	ret
+cjmp:
+	pop         bx
+	pop         dx
+	add         dx,2
+	add         si,ax
+	inc         si
+	xchg        si,di
+	call        movaxnum
+	jc          _jerr
+	sub         ax,dx
+	cmp         ax,7Fh
+	ja          jmor1
+	clc
+	call        shjmprm
+	ret
+_jerr:
+	mov         byte ptr[si],0F0h
+	clc
+	ret
+jmor1:
+	neg         ax
+	cmp         ax,80h
+	ja          jmor2
+	neg         ax
+	clc
+	call        shjmprm
+	ret
+jmor2:
+	neg         ax
+	mov         byte ptr[si],4
+	inc         si
+	mov         di,cx
+	mov         dx,[bx+di]
+	add         dx,0F10h
+	xchg        dh,dl
+	mov         [si],dx
+	sub         ax,2
+	mov         [si+2],ax
+	ret
+
+shjmprm     proc        near
+	mov         byte ptr[si],2
+	inc         si
+	mov         di,cx
+	mov         dx,[bx+di]
+	mov         [si],dx
+	mov         [si+1],al
+	ret
+shjmprm     endp
+
+chk_cnd_jmp_ endp
+
+if_reg      proc        near
+	mov         al,' '
+	xchg        si,di
+	mov         cx,97
+repne       scasb
+	xchg        si,di
+	push        si
+	mov         ax,[si]
+	xor         si,si
+reg_lp:
+	cmp         ax,[bx+si]
+	je          rg_exit
+	add         si,2
+	cmp         si,16
+	jb          reg_lp
+	pop         si
+	stc
+	ret
+regs16      db          'AXCXDXBXSPBPSIDI'
+regs8       db          'ALCLDLBLAHCHDHBH'
+rg_exit:
+	mov         cx,si
+	shr         cx,1
+	or          cl,0C0h
+	pop         si
+	cmp         byte ptr[si+2],'T'
+	jne         @@okay
+	stc
+	ret
+@@okay:
+	clc
+	ret
+if_reg      endp
+
+
+chk_1_prm proc          near
+	push        dx
+	mov	ax, offset cprm1_3
+	push	ax
+	xor         cx,cx
+	lea         bx,prm1_3
+	mov         ax,4
+	mov         dx,9
+	call        loop_cmd
+	jc          prm1a
+	dec         ax
+	call        cmd_free
+	jnc         cprm
+prm1a:
+	pop         dx
+	mov	ax, offset cprm1_4
+	push	ax
+	xor         cx,cx
+	mov         bx,offset prm1_4
+	mov         ax,5
+	mov         dx,23
+	call        loop_cmd
+	jc          prm1b
+	dec         ax
+	call        cmd_free
+	jnc         cprm
+prm1b:
+	pop         dx
+	mov	ax,	offset cprm1_5
+	push	ax
+	xor         cx,cx
+	mov         bx,offset prm1_5
+	mov         ax,6
+	mov         dx,21
+	call        loop_cmd
+	jc          prm1c
+	dec         ax
+	call        cmd_free
+	jnc         cprm
+prm1c:
+	pop         dx
+	mov	ax,offset cprm1_6
+	push	ax
+	xor         cx,cx
+	mov         bx,offset prm1_6
+	mov         ax,7
+	mov         dx,5
+	call        loop_cmd
+	jc          prm1d
+	dec         ax
+	call        cmd_free
+	jnc         cprm
+prm1d:
+	pop         dx
+	pop         dx
+	ret
+cprm:
+	pop         bx
+	pop         dx
+	add         bx,cx
+	push        bx
+	lea         bx,regs16
+	push        si
+	call        if_reg
+	jnc         creg16
+	pop         si
+	push        si
+	lea         bx,regs8
+	call        if_reg
+	jnc         creg8
+	pop         si
+	pop         bx
+	call        ptrs
+	cmp         cl,7
+	ja          @@ptr1
+	cmp         cl,6
+	je          @@tmp
+	jmp         short       _creg1
+@@tmp:
+	mov         byte ptr[di],4
+	jmp         short       _creg2
+@@ptr1:
+	cmp         cl,47h
+	ja          @@ptr2
+	mov         byte ptr[di],3
+	mov         ch,3
+	jmp         short       _creg2
+@@ptr2:
+	cmp         cl,87h
+	ja          @@ptr3
+	mov         byte ptr[di],4
+	mov         ch,4
+	jmp         short       _creg2
+@@ptr3:
+	ret
+creg16:
+	mov         bitsize,16
+crg:
+	pop         si
+	pop         bx
+_creg1:
+	mov         byte ptr[di],2
+_creg2:
+	mov         ax,[bx]
+	cmp         ah,0FFh
+	je          _3byte
+	cmp         bitsize,16
+	je          @@_
+	dec         ax
+@@_:
+	add         [di+1],ax
+	or          byte ptr[di+2],cl
+	mov         word ptr[di+3],dx
+	clc
+	ret
+creg8:
+	mov         bitsize,8
+	jmp         short       crg
+_3byte:
+	add         al,al
+	add         al,al
+	xor         ah,ah
+	mov         bx,offset prm1_a
+	add         bx,ax
+	mov         ax,[bx]
+	mov         si,[bx+2]
+	inc         ch
+	mov         byte ptr[di],ch
+	inc         di
+	mov         word ptr[di],si
+	mov         word ptr[di+2],ax
+	or          byte ptr[di+2],cl
+	mov         word ptr[di+3],dx
+	clc
+	ret
+abort:
+	stc
+	ret
+chk_1_prm endp
+
+ptrs        proc        near
+	mov         sign,0
+	mov         al,' '
+	xchg        si,di
+	mov         cx,97
+repne       scasb
+	xchg        si,di
+	xor         al,al
+	cmp         byte ptr[si],'['
+	jne         $ + 5
+	jmp         _open
+	push        si
+	mov	ax, offset _ptrs
+	push	ax
+	mov	ax, 8
+	push        ax
+	call        strcmp
+	jc          ptr1
+	mov         bitsize,8
+	add         si,8
+_bptr:
+	cmp         byte ptr[si],'['
+	jne         $ + 5
+	jmp         _open
+	cmp         byte ptr[si],' '
+	jne         @@_err
+	inc         si
+	cmp         byte ptr[si],'['
+	jne         $ + 5
+	jmp         _open
+	jmp         short       @@_err
+ptr1:
+	push        si
+	mov	ax, offset _ptrs + 8
+	push	ax
+	mov	ax, 8
+	push        ax
+	call        strcmp
+	jc          @@_err
+	mov         bitsize,16
+	add         si,8
+_wptr:
+	cmp         byte ptr[si],'['
+	je          _open
+	cmp         byte ptr[si],' '
+	jne         @@_err
+	inc         si
+	cmp         byte ptr[si],'['
+	je          _open
+@@_err:
+	push        si
+	mov	ax, offset _ptrs_
+	push	ax
+	mov	ax, 4
+	push        ax
+	call        strcmp
+	jc          @@tmp1
+	mov         bitsize,8
+	add         si,4
+	jmp         _bptr
+@@tmp1:
+	push        si
+	mov	ax, offset _ptrs_ + 4
+	push	ax
+	mov	ax, 4
+	push        ax
+	call        strcmp
+	jc          @@tmp2
+	mov         bitsize,16
+	add         si,4
+	jmp         _wptr
+@@tmp2:
+	stc
+	ret
+_open:
+	mov         dx,offset _ptrs1
+	inc         si
+	xor         cx,cx
+ptr_lp1:
+	push        si
+	push        dx
+	mov	ax, 5
+	push        ax
+	call        strcmp
+	jnc         @@_found
+	inc         cx
+	add         dx,5
+	cmp         cx,4
+	jbe         ptr_lp1
+	dec         cx
+	mov         dx,offset _ptrs2
+ptr_lp2:
+	push        dx
+	push        si
+	mov	ax, 2
+	push        ax
+	call        strcmp
+	jnc         @@_found
+	inc         cx
+	add         dx,2
+	cmp         cx,8
+	jbe         ptr_lp2
+	xchg        si,di
+	call        movaxnum
+	xchg        si,di
+	jnc         @@cont3
+	stc
+	ret
+@@cont3:
+	mov         dx,ax
+	mov         cx,0406h
+	jmp         short       _end
+@@_found:
+	cmp         cx,3
+	ja          @@_add
+	add         si,3
+@@_add:
+	add         si,2
+	cmp         byte ptr[si],']'
+	jne         @@cnt1
+	mov         ch,2
+	cmp         cl,46h
+@@cont:
+	cmp         cl,6
+	jne         _end
+	mov         cl,46h
+	mov         dx,0
+	jmp         short       _end
+@@cnt1:
+	cmp         byte ptr[si],' '
+	jne         @@cont1
+	inc         si
+@@cont1:
+	cmp         byte ptr[si],']'
+	jne         @@cont6
+@@cont6:
+	cmp         byte ptr[si],'+'
+	je          @@cont4
+	cmp         byte ptr[si],'-'
+	jne         @err
+	mov         sign,1
+@@cont4:
+	inc         si
+	xchg        si,di
+	call        movaxnum
+	xchg        si,di
+	jc          @err
+	cmp         sign,0
+	je          @@cont5
+	neg         ax
+@@cont5:
+	mov         dx,ax
+	cmp         ah,0
+	je          @@cont2
+	or          cl,80h
+	mov         ch,4
+	jmp         short       @@cont
+@@cont2:
+	or          cl,40h
+	mov         ch,3
+	jmp         short       @@cont
+_end:
+	clc
+	ret
+@err:
+	stc
+	ret
+
+_ptrs       db          'BYTE PTRWORD PTR'
+_ptrs_      db          'BPTRWPTR'
+_ptrs1      db          'BX+SIBX+DIBP+SIBP+DI'
+_ptrs2      db          'SIDIBPBX'
+ptrs        endp
+
+chk_num_prm proc        near
+	mov         bx,offset @@_int
+	push        bx
+	push        si
+	mov	ax, 4
+	push        ax
+	call        strcmp
+	jc          @@cont1
+	mov         ax,3
+	call        cmd_free
+	jc          @@err
+	jmp         prcs@@_int
+@@cont1:
+	mov         bx,offset @@_ret
+	push        bx
+	push        si
+	mov	ax, 3
+	push        ax
+	call        strcmp
+	jc          @@cont2
+	mov         ax,0C2C3h
+	mov         bx,0CACBh
+	jmp         prcs@@_ret
+@@cont2:
+	stc
+	ret
+@@_int      db          'INT '
+@@_ret      db          'RET'
+@@err:
+	stc
+	ret
+prcs@@_int:
+	add         si,4
+	xchg        si,di
+	call        movaxnum
+	xchg        si,di
+	jc          @@err
+	cmp         ah,0
+	jne         @@err
+	cmp         al,3
+	jne         @@cont3
+	mov         byte ptr[di],1
+	mov         byte ptr[di+1],0CCh
+	clc
+	ret
+@@cont3:
+	mov         byte ptr[di],2
+	mov         byte ptr[di+1],0CDh
+	mov         byte ptr[di+2],al
+	clc
+	ret
+prcs@@_ret:
+	add         si,3
+	cmp         byte ptr[si],'F'
+	jne         @@cont4
+	mov         ax,bx
+	inc         si
+@@cont4:
+	cmp         byte ptr[si],' '
+	je          @@cont5
+@@exit:
+	mov         byte ptr[di],1
+	mov         byte ptr[di+1],al
+	clc
+	ret
+@@cont5:
+	inc         si
+	xchg        si,di
+	push        ax
+	call        movaxnum
+	mov         bx,ax
+	pop         ax
+	xchg        si,di
+	jnc         @@cont6
+	jmp         short       @@exit
+@@cont6:
+	mov         byte ptr[di],3
+	inc         di
+	mov         byte ptr[di],ah
+	inc         di
+	mov         [di],bx
+	clc
+	ret
+chk_num_prm endp
+
+_jmp_       db          'JMP '
+_call       db          'CALL '
+_ptr1       db          'SHORT '
+_ptr2       db          'FAR '
+
+chk_uncnd   proc        near
+	push        dx
+	mov         bx,offset _jmp_
+	push        bx
+	push        si
+	mov	ax, 4
+	push        ax
+	call        strcmp
+	jc          @@cnt1
+	mov         dx,0
+	add         si,4
+	jmp         short       @@cnt2
+@@cnt1:
+	mov         bx,offset _call
+	push        bx
+	push        si
+	mov	ax, 5
+	push        ax
+	call        strcmp
+	jc          @@cnterr
+	mov         dx,1
+	add         si,5
+@@cnt2:
+	mov         bx,offset _ptr1
+	push        bx
+	push        si
+	mov	ax, 6
+	push        ax
+	call        strcmp
+	jc          @@cnt3
+	or          dx,4
+	add         si,6
+	jmp         prcs
+@@cnt3:
+	mov         bx,offset _ptr2
+	push        bx
+	push        si
+	mov	ax, 4
+	push        ax
+	call        strcmp
+	jc          @@cnt4
+	or          dx,8
+	add         si,4
+	jmp         prcs
+@@cnt4:
+	or          dx,80h
+	jmp         prcs
+@@cnterr:
+	pop         dx
+	stc
+	ret
+prcs:
+	cmp         dx,5
+	je          @@cnterr
+	push        si
+	dec         si
+	mov         bx,offset regs16
+	call        if_reg
+	pop         si
+	jnc         reg
+	dec         si
+	push        dx
+	call        ptrs
+	pop         dx
+	jnc         @@ptr
+	xchg        si,di
+	call        movaxnum
+	xchg        si,di
+	jc          @@out
+	mov         bx,ax
+	jmp         @@imm
+@@out:
+	pop         dx
+	stc
+	ret
+reg:
+	cmp         dx,4
+	jne         @@reg1
+	pop         dx
+	stc
+	ret
+@@reg1:
+	cmp         dx,8
+	jne         @@reg2
+	pop         dx
+	stc
+	ret
+@@reg2:
+	cmp         dx,80h
+	jne         @@reg3
+	mov         ax,20FFh
+	jmp         short       @@rjp
+@@reg3:
+	cmp         dx,9
+	jne         @@reg4
+	pop         dx
+	stc
+	ret
+@@reg4:
+	mov         ax,10FFh
+@@rjp:
+	mov         byte ptr[di],2
+	inc         di
+	mov         [di],ax
+	inc         di
+	or          [di],cl
+	pop         dx
+	clc
+	ret
+@@ptr:
+	cmp         dx,5
+	jne         @@ptr1
+	pop         dx
+	stc
+	ret
+@@ptr1:
+	cmp         dx,4
+	jne         @@ptr2
+	pop         dx
+	stc
+	ret
+@@ptr2:
+	cmp         dx,8
+	jne         @@ptr3
+	mov         dx,28FFh
+	jmp         short       ptrprc
+@@ptr3:
+	cmp         dx,80h
+	jne         @@ptr4
+	mov         dx,20FFh
+	jmp         short       ptrprc
+@@ptr4:
+	cmp         dx,9
+	jne         @@ptr5
+	mov         dx,18FFh
+	jmp         short       ptrprc
+@@ptr5:
+	mov         dx,10FFh
+ptrprc:
+	mov         [di],ch
+	inc         di
+	mov         [di],dx
+	inc         di
+	or          [di],cl
+	inc         di
+	mov         [di],ax
+	pop         dx
+	clc
+	ret
+@@imm:
+	cmp         dx,5
+	jne         @@imm1
+	pop         dx
+	stc
+	ret
+@@imm1:
+	cmp         dx,4
+	jne         @@imm2
+	jmp         short       @@shrt
+@@imm2:
+	cmp         dx,8
+	jne         @@imm3
+	mov         al,0EAh
+	jmp         short       @@far
+@@imm3:
+	cmp         dx,80h
+	jne         @@imm4
+	mov         al,0E9h
+	jmp         short       @@norm
+@@imm4:
+	cmp         dx,9
+	jne         @@imm5
+	mov         al,9Ah
+	jmp         short       @@far
+@@imm5:
+	mov         al,0E8h
+@@norm:
+	pop         dx
+	add         dx,3
+	sub         bx,dx
+	mov         byte ptr[di],3
+	inc         di
+	mov         [di],al
+	inc         di
+	mov         [di],bx
+	clc
+	ret
+@@far:
+	pop         dx
+	push        ax
+	mov         cx,8
+	xchg        si,di
+	mov         al,':'
+repne       scasb
+	pop         cx
+	call        movaxnum
+	xchg        si,di
+	jc          @@out
+	mov         byte ptr[di],5
+	inc         di
+	mov         [di],cl
+	inc         di
+	mov         [di],ax
+	mov         [di+2],bx
+	clc
+	ret
+@@shrt:
+	pop         dx
+	add         dx,2
+	sub         bx,dx
+	cmp         bx,80h
+	jb          @@shrt1
+	cmp         bx,0FF80h
+	ja          @@shrt1
+	stc
+	ret
+@@shrt1:
+	mov         byte ptr[di],2
+	inc         di
+	mov         byte ptr[di],0EBh
+	inc         di
+	mov         [di],bl
+	clc
+	ret
+chk_uncnd   endp
+
+
+
+
+
+
+
+
+
+
+
+no_prm3     db          'AAA AAD AAM AAS CBW CLC CLD CLI CMC CS: CTS CWD DAA DAS DS: '
+	db          'ES:         HLT NOP REP SS: STC STD STI '
+cnoprm3     dw          37h,0AD5h,0AD4h,3Fh,98h,0F8h,0FCh,0FAh,0F5h,2Eh,60Fh,99h,27h
+	dw          2Fh,3Eh,26h,64h,65h,0F4h,90h,0F2h,36h,0F9h,0FDh,0FBh
+no_prm4     db          'CLTS INSB      INSW INTO      IRET LAHF LOCK POPA POPF REPE '
+	db          'REPZ SAHF XLAT '
+cnoprm4     dw          60Fh,6Ch,6D66h,6Dh,0CEh,80Fh,0CFh,9Fh
+	dw          0F0h,61h,9Dh,0F3h,0F3h,9Eh,0D7h
+no_prm5     db          'CMPSB       CMPSW LEAVE LODSB       LODSW MOVSB       '
+	db          'MOVSW OUTSB       OUTSW                   PUSHA PUSHF '
+	db          'REPNE REPNZ SCASB       SCASW STOSB       STOSW '
+cnoprm5     dw          0A6h,0A766h,0A7h,0C9h,0ACh,0AD66h,0ADh,0A4h,0A566h,0A5h
+	dw          6Eh,6F66h,6Fh,6166h,9D66h,9D66h,60h,9Ch,0F2h,0F2h,0AEh
+	dw          0AF66h,0AFh,0AAh,0AB66h,0ABh
+no_prm6     db          '                            POP ES POP SS POP DS '
+cnoprm6     dw          6066h,9C66h,9C66h,90Fh,07h,17h,1Fh
+no_prm7     db          'PUSH ES PUSH CS PUSH SS PUSH DS '
+cnoprm7     dw          06h,0Eh,16h,1Eh
+jmps2       db          'JO JB JC JE JZ JA JS JP JL JG '
+cjmp2       dw          70h,72h,72h,74h,74h,77h,78h,7Ah,7Ch,7Fh
+jmps3       db          'JNO JNB JAE JNC JNE JNZ JBE JNA JNS JPE JNP JPO JNL JGE '
+	db          'JLE JNG '
+cjmp3       dw          71h,73h,73h,73h,75h,75h,76h,76h,79h,7Ah,7Bh,7Bh,7Dh,7Dh
+	dw          7Eh,7Eh
+jmps4       db          'JNAE JNBE JNGE JNLE JCXZ LOOP '
+cjmp4       dw          72h,77h,7Ch,7Fh,0E3h,0E2h
+jmps5       db          'LOOPZ LOOPE '
+cjmp5       dw          0E1h,0E1h
+jmps6       db          'LOOPNZ LOOPNE '
+cjmp6       dw          0E0h,0E0h
+prm1_3      db          'DEC DIV INC LTR MUL NEG NOT POP STR '
+prm1_4      db          'IDIV IMUL LGDT LIDT LLDT LMSW PUSH           '
+	db          '                                        SGDT '
+	db          'SIDT SLDT SMSW VERR VERW '
+prm1_5      db          '                                                '
+	db          '                                                '
+prm1_6      db          '                                   '
+cprm1_3     dw          8FFh,30F7h,0FFh,0FF00h,20F7h,18F7h,10F7h,8Fh,0FF01h
+cprm1_4     dw          38F7h,28F7h,0FF02h,0FF03h,0FF04h,0FF05h,30FFh
+	dw          0FF06h,0FF07h,0FF08h,0FF09h,0FF0Ah,0FF0Bh,0FF0Ch,0FF0Dh
+	dw          0FF0Eh,0FF0Fh,0FF10h,0FF11h,0FF12h,0FF13h,0FF14h,0FF15h
+cprm1_5     dw          0080Fh,0FF17h,0FF18h,0FF19h,0FF1Ah,0FF1Bh,0FF1Ch,0FF1Dh
+	dw          0FF1Eh,0FF1Fh,0FF20h,0FF21h,0FF22h,0FF23h,0FF24h,0FF25h
+cprm1_6     dw          0FF26h,0FF27h,0FF28h,0FF29h,0FF2Ah
+prm1_a      dw          18h,000Fh,08h,000Fh,10h,010Fh,18h,010Fh,10h,000Fh
+	dw          30h,010Fh,00h,970Fh,00h,920Fh,00h,920Fh,00h,940Fh
+	dw          00h,9F0Fh,00h,9C0Fh,00h,900Fh,00h,9A0Fh,00h,980Fh
+	dw          00h,940Fh,00h,010Fh,08h,010Fh,00h,000Fh,20h,010Fh
+	dw          20h,000Fh,28h,000Fh                 ; 4 BYTE CMD
+	dw          00h,0000h,00h,960Fh,00h,9D0Fh,00h,9E0Fh,00h,960Fh
+	dw          00h,930Fh,00h,950Fh,00h,9E0Fh,00h,9C0Fh,00h,910Fh
+	dw          00h,9B0Fh,00h,980Fh,00h,940Fh,00h,9A0Fh,00h,9B0Fh
+	dw          07h,010Fh,00h,920Fh,00h,970Fh,00h,9C0Fh,00h,9F0Fh
+
+ors         db          08h,0Bh,80h,08h,80h,0C8h
+ands        db          20h,23h,80h,20h,80h,0E0h
+xors        db          30h,33h,80h,30h,80h,0F0h
+adds        db          00h,03h,80h,00h,80h,0C0h
+adcs        db          10h,13h,80h,10h,80h,0D0h
+sbbs        db          18h,1Bh,80h,18h,80h,0D8h
+subs        db          28h,2Bh,80h,28h,80h,0E8h
+cmps_       db          38h,3Bh,80h,38h,80h,0F8h
+movs_       db          88h,8Bh,0C6h,0h,0C6h,000h
+tests       db          84h,85h,0F6h,0h,0F6h,000h
+leas        db          6 dup (08Dh)
+ldss        db          6 dup (0C5h)
+less        db          6 dup (0C4h)
+xchgs       db          6 dup (86h)
+
+
+
+chk_diff    proc        near
+	cmp         word ptr [si],'RO'
+	je          $ + 5
+	jmp         @@mor1
+	mov         bp,offset ors
+@@process:
+	cmp         mov_flg, 2
+	jae         @@cnt1
+	push        si
+	mov         bx,offset regs8
+	call        if_reg
+	pop         si
+	jc          @@cnt1
+	add         si,5
+	cmp         byte ptr[si],','
+	je          @@tmpp
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@tmpp
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@tmpp
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@tmpp
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@tmpp
+	inc         si
+	cmp         byte ptr[si],' '
+	jne         $ + 5
+	jmp         @@exit
+	inc         si
+@@tmpp:
+	mov         byte ptr[si],' '
+	push        cx
+	push        si
+	mov         bx,offset regs8
+	call        if_reg
+	pop         si
+	jnc         $ + 5
+	jmp         @@cnt2
+	pop         bx
+	xchg        ax,cx
+	and         al,111111B
+	mov         cl,3
+	shl         al,cl
+	or          al,bl
+	mov         byte ptr[di],2
+	inc         di
+	mov         dl,ds:[bp]
+	mov         byte ptr[di],dl
+	inc         di
+	mov         [di],al
+	mov         mov_flg, 0
+	clc
+	ret
+@@cnt1:
+	mov         bx,offset regs16
+	push        si
+	call        if_reg
+	pop         si
+	jnc         $ + 5
+	jmp         @@cnt3
+	mov         al,cl
+	add         si,5
+	cmp         byte ptr[si],','
+	je          @@tmp99
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@tmp99
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@tmp99
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@tmp99
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@tmp99
+	jmp         @@exit
+@@tmp99:
+	mov         byte ptr[si],' '
+	cmp         byte ptr[si+1],' '
+	jne         $ + 3
+	inc         si
+	mov         bx,offset regs16
+	push        si
+	push        ax
+	call        if_reg
+	pop         ax
+	pop         si
+	push        ax
+	jc          @@cnt4
+	cmp         mov_flg, 2
+	jae         @@cnt4
+	mov         mov_flg, 0
+	pop         ax
+	and         cl,111111B
+	mov         ah,cl
+	mov         cl,3
+	shl         ah,cl
+	or          ah,al
+	mov         byte ptr[di],2
+	inc         di
+	mov         dl,ds:[bp]
+	inc         dl
+	mov         byte ptr[di],dl
+	inc         di
+	mov         [di],ah
+	clc
+	ret
+@@cnt4:
+	pop         bx
+	call        ptrs
+	jnc         $ + 5
+	jmp         @@cnt6
+	and         bl,111111B
+	push        cx
+	mov         cl,3
+	shl         bl,cl
+	pop         cx
+	or          cl,bl
+	mov         byte ptr[di],ch
+	inc         di
+	mov         dl,ds:[bp+1]
+	mov         byte ptr[di],dl
+	inc         di
+	mov         byte ptr[di],cl
+	inc         di
+	mov         [di],ax
+	clc
+	ret
+@@cnt3:
+	call        ptrs
+	jnc         @@ttt1
+	stc
+	ret
+@@ttt1:
+	inc         si
+	cmp         byte ptr [si],','
+	je          @@tmp2
+	inc         si
+	cmp         byte ptr [si],','
+	je          @@tmp2
+	jmp         @@exit
+@@tmp2:
+	mov         byte ptr [si],' '
+	cmp         byte ptr [si+1],' '
+	jne         $ + 3
+	inc         si
+	push        ax
+	push        cx
+	push        si
+	mov         bx,offset regs8
+	call        if_reg
+	pop         si
+	jc          @@cnt7
+	and         cl,111111B
+	mov         dx,cx
+	mov         cl,3
+	shl         dl,cl
+	pop         cx
+	pop         ax
+	or          cl,dl
+	mov         byte ptr [di],ch
+	inc         di
+	mov         dl,ds:[bp]
+	mov         byte ptr [di],dl
+	inc         di
+	mov         [di],cl
+	inc         di
+	mov         [di],ax
+	clc
+	ret
+@@cnt7:
+	mov         bx,offset regs16
+	push        si
+	call        if_reg
+	pop         si
+	jc          @@cnt8
+	mov         mov_flg, 0
+	and         cl,111111B
+	mov         dx,cx
+	mov         cl,3
+	shl         dl,cl
+	pop         cx
+	pop         ax
+	or          cl,dl
+	mov         [di],ch
+	inc         di
+	mov         dl,ds:[bp]
+	cmp         mov_flg,2
+	jae         @@ttt2
+	inc         dl
+@@ttt2:
+	mov         byte ptr[di],dl
+	inc         di
+	mov         [di],cl
+	inc         di
+	mov         [di],ax
+	clc
+	ret
+ptr_seg:
+	cmp         mov_flg, 1
+	je          $ + 3
+	ret
+	mov         mov_flg, 1
+	cmp         byte ptr[si+1], 'S'
+	je          @@pr1
+	ret
+@@pr1:
+	inc         sp
+	inc         sp
+	cmp         byte ptr[si], 'E'
+	jne         @@p1
+	mov         cmd_ext, 0
+	jmp         pr2
+@@p1:
+	cmp         byte ptr[si], 'C'
+	jne         @@p2
+	mov         cmd_ext, 1000B
+	jmp         pr2
+@@p2:
+	cmp         byte ptr[si], 'S'
+	jne         @@p3
+	mov         cmd_ext, 10000B
+	jmp         pr2
+@@p3:
+	cmp         byte ptr[si], 'D'
+	jne         @@p4
+	mov         cmd_ext, 11000B
+	jmp         pr2
+@@p4:
+	stc
+	ret
+pr2:
+	or          cl, cmd_ext
+	mov         byte ptr[di], ch
+	inc         di
+	mov         byte ptr[di], 8Ch
+	inc         di
+	mov         byte ptr[di], cl
+	inc         di
+	mov         [di], dx
+            mov	mov_flg, 0
+	clc
+	ret
+@@cnt8:
+	pop         cx
+	pop         ax
+	inc         si
+	cmp         another_fl, 1
+	je          @@exit
+	call        ptr_seg
+	xchg        si,di
+	call        movaxnum
+	xchg        si,di
+	jnc         $ + 5
+	jmp         @@exit
+	cmp         mov_flg, 2
+	jnae        $ + 5
+	jmp         @@exit
+	inc         ch
+	cmp         bitsize,8
+	jz          $ + 4
+	inc         ch
+	mov         [di],ch
+	inc         di
+	push        dx
+	mov         dx,ds:[bp+2]
+	mov         word ptr[di],dx
+	pop         dx
+	cmp         bitsize,16
+	jne         @@tmp4
+	inc         byte ptr[di]
+@@tmp4:
+	inc         di
+	or          [di],cl
+	inc         di
+	cmp         cl,06h
+	jne          @@spc_case
+	add          cl, 80h
+@@spc_case:
+	cmp         cl,40h
+	jb          @@tmp3
+	cmp         cl,0C0h
+	jae         @@tmp3
+	mov         [di],dl
+	inc         di
+	cmp         cl,80h
+	jb          @@tmp3
+	mov         [di],dh
+	inc         di
+@@tmp3:
+	mov         [di],ax
+	clc
+	ret
+@@cnt2:
+	pop         bx
+	call        ptrs
+	jc          @@cnt5
+	and         bl,111111B
+	push        cx
+	mov         cl,3
+	shl         bl,cl
+	pop         cx
+	or          cl,bl
+	mov         byte ptr[di],ch
+	inc         di
+	mov         dl,ds:[bp+1]
+	dec         dl
+	mov         byte ptr[di],dl
+	inc         di
+	mov         byte ptr[di],cl
+	inc         di
+	mov         [di],ax
+	clc
+	ret
+
+
+@@cnt5:
+	cmp         another_fl, 1
+	je          @@exit
+	xchg        si,di
+	call        movaxnum
+	xchg        si,di
+	jnc         $ + 5
+	jmp         @@exit
+	mov         byte ptr [di],3
+	inc         di
+	mov         dx,ds:[bp+4]
+	mov         word ptr [di],dx
+	inc         di
+	or          [di],bl
+	inc         di
+	mov         [di],al
+	clc
+	ret
+@@cnt6:
+	cmp         another_fl, 1
+	je          @@exit
+	mov         cl, bl
+	mov         ch, 2
+	call        ptr_seg
+	xchg        si,di
+	call        movaxnum
+	xchg        si,di
+	jnc         $ + 5
+	jmp         @@exit
+	cmp         mov_flg, 2
+	jnae        $ + 5
+	jmp         @@exit
+	mov         byte ptr [di],4
+	inc         di
+	mov         dx,ds:[bp+4]
+	inc         dx
+	mov         word ptr [di],dx
+	inc         di
+	or          [di],bl
+	inc         di
+	mov         [di],ax
+	clc
+	ret
+
+cmds        db          'AND XOR ADD ADC SUB SBB CMP MOV TEST LEA LDS LES XCHG '
+
+@@mor1:
+	mov         cx,4
+	mov         ax,offset cmds
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor2
+	mov         bp,offset ands
+	jmp         @@process
+@@mor2:
+	add         ax,cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor3
+	mov         bp,offset xors
+	jmp         @@process
+@@mor3:
+	add         ax,cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor4
+	mov         bp,offset adds
+	jmp         @@process
+@@mor4:
+	add         ax,cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor5
+	mov         bp,offset adcs
+	jmp         @@process
+@@mor5:
+	add         ax,cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor6
+	mov         bp,offset subs
+	jmp         @@process
+@@mor6:
+	add         ax,cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor7
+	mov         bp,offset sbbs
+	jmp         @@process
+@@mor7:
+	add         ax,cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor8
+	mov         bp,offset cmps_
+	jmp         @@process
+@@mor8:
+	call        if_port
+	jc          @@mor9
+	mov         flbp,0
+	clc
+	ret
+@@mor9:
+	call        if_shft
+	jc          @@mor10
+	clc
+	ret
+mov_flg     db          0
+@@mor10:
+	add         ax,cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor11
+	mov         mov_flg, 1
+	mov         bp,offset movs_
+	jmp         @@process
+
+@@mor11:
+	add         ax,cx
+	inc         cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor12
+	mov         bp,offset tests
+	jmp         @@process
+@@mor12:
+	add         ax,cx
+	dec         cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor13
+	mov         mov_flg, 3
+	mov         bp,offset leas
+	jmp         @@process
+@@mor13:
+	add         ax,cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor14
+	mov         mov_flg, 2
+	mov         bp,offset ldss
+	jmp         @@process
+@@mor14:
+	add         ax,cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor15
+	mov         mov_flg, 2
+	mov         bp,offset less
+	jmp         @@process
+@@mor15:
+	add         ax, cx
+	inc         cx
+	push        ax
+	push        si
+	push        cx
+	call        strcmp
+	jc          @@mor16
+	mov         mov_flg, 0
+	mov         bp, offset xchgs
+	jmp         @@process
+@@mor16:
+
+@@exit:
+	stc
+	ret
+chk_diff    endp
+
+another_fl  db          0
+
+if_shft     proc        near
+	cmp         byte ptr[si],'S'
+	je          @@ok_1
+	cmp         byte ptr[si],'R'
+	je          @@ok_2
+	jmp         @@exit
+@@ok_1:
+	inc         si
+	cmp         word ptr[si],'LH'
+	jne         @@mor1
+	mov         cmd_ext,100000B
+	jmp         @@ok_3
+@@mor1:
+	cmp         word ptr[si],'LA'
+	jne         @@mor2
+	mov         cmd_ext,100000B
+	jmp         @@ok_3
+@@mor2:
+	cmp         word ptr[si],'RH'
+	jne         @@mor3
+	mov         cmd_ext,101000B
+	jmp         @@ok_3
+@@mor3:
+	cmp         word ptr[si],'RA'
+	jne         @@mor4
+	mov         cmd_ext,111000B
+	jmp         @@ok_3
+@@mor4:
+	dec         si
+	jmp         @@exit
+@@ok_2:
+	inc         si
+	cmp         word ptr[si],'LO'
+	jne         @@mor5
+	mov         cmd_ext,0
+	jmp         @@ok_3
+@@mor5:
+	cmp         word ptr[si],'RO'
+	jne         @@mor6
+	mov         cmd_ext,1000B
+	jmp         @@ok_3
+@@mor6:
+	cmp         word ptr[si],'LC'
+	jne         @@mor7
+	mov         cmd_ext,10000B
+	jmp         @@ok_3
+@@mor7:
+	cmp         word ptr[si],'RC'
+	jne         @@mor8
+	mov         cmd_ext,11000B
+	jmp         @@ok_3
+@@mor8:
+	dec         si
+@@exit:
+	stc
+	ret
+@@ok_3:
+	push        si
+	mov         bx,offset regs8
+	call        if_reg
+	pop         si
+	jc          @@tmp1
+	mov         bitsize,8
+	jmp         @@ok_4
+@@tmp1:
+	push        si
+	mov         bx,offset regs16
+	call        if_reg
+	pop         si
+	jc          @@tmp2
+	jmp         @@ok_4
+@@tmp2:
+	call        ptrs
+	jc          @@exit
+@@ok_4:
+	or          cmd_ext,cl
+	mov         cmdsize,ch
+	xchg        si,di
+	mov         al,','
+	mov         cx,20
+repne       scasb
+	xchg        si,di
+	jne         @@exit
+	cmp         byte ptr[si],' '
+	jne         @@ok_5
+	inc         si
+@@ok_5:
+	cmp         byte ptr[si],'1'
+	jne         @@tmp3
+	mov         al,[si+1]
+	call        isxdigit
+	jnc         @@tmp4
+	mov         al,0D0h
+@@entry:
+	mov         cl,cmd_ext
+	mov         ch,cmdsize
+	cmp         cl,0C0h
+	jb          @@tmp98
+	add         ch,2
+@@tmp98:
+	cmp         al,0C0h
+	jne         @@tmp97
+	inc         ch
+@@tmp97:
+	mov         byte ptr[di],ch
+	inc         di
+	mov         byte ptr[di],al
+	cmp         bitsize,16
+	jne         @@tmp99
+	inc         byte ptr[di]
+@@tmp99:
+	inc         di
+	mov         byte ptr[di],cl
+	inc         di
+	mov         [di],dx
+	cmp         cl,0C0h
+	jae         @@tmp96
+	inc         di
+	cmp         cl,80h
+	jb          @@tmp96
+	inc         di
+@@tmp96:
+	mov         [di],bl
+	clc
+	ret
+@@tmp3:
+	cmp         word ptr[si],'LC'
+	jne         @@tmp4
+	mov         al,0D2h
+	jmp         @@entry
+	clc
+	ret
+@@tmp4:
+	xchg        si,di
+	call        movaxnum
+	xchg        si,di
+	jnc         $ + 5
+	jmp         @@exit
+	cmp         ah,00
+	je          $ + 5
+	jmp         @@exit
+	mov         bx,ax
+	mov         al,0C0h
+	jmp         @@entry
+	clc
+	ret
+cmd_ext     db          0
+if_shft     endp
+sign        db          ?
+bitsize     db          16
+cmdsize     db          16
+assemble endp
+
+cmd_free proc           near
+	push        bp
+	mov         bp,ax
+	cmp         byte ptr ds:[bp+si],0
+	je          it_free
+	cmp         byte ptr ds:[bp+si],32
+	je          it_free
+	cmp         byte ptr ds:[bp+si],10
+	je          it_free
+	cmp         byte ptr ds:[bp+si],13
+	je          it_free
+	pop         bp
+	stc
+	ret
+it_free:
+	pop         bp
+	clc
+	ret
+cmd_free endp
+
+flbp        db          0
+
+optFF8F	proc	near
+	cmp	byte ptr[di], 2
+	jnz	@@out
+	cmp	byte ptr[di+1], 08Fh
+	jnz	not_pop
+	mov	al, byte ptr[di+2]
+	cmp	al, 0C0h
+	jb	@@out
+	cmp	al, 0C7h
+	ja	@@out
+	mov	byte ptr[di], 1
+	sub	al, 68h
+	mov	byte ptr[di+1], al
+	jmp	@@out
+not_pop:
+
+@@out:
+	ret
+optFF8F	endp
+
+
+transform   proc        near
+	call        xchg_opt
+	call        mov_optimize
+	call        checkbp
+	call        checklst
+	call	optFF8F
+	jc          @@quit
+	cmp         byte ptr[di],2
+	jne         @@quit
+	inc         di
+	cmp         byte ptr[di],0FFh
+	jne         @@not1
+	inc         di
+	cmp         byte ptr[di],0C0h
+	jb          @@quit
+	cmp         byte ptr[di],0CFh
+	ja          @@not2
+	dec         di
+	dec         di
+	mov         byte ptr[di],1
+	inc         di
+	mov         al,[di+1]
+	sub         al,80h
+	mov         [di],al
+	ret
+@@not2:
+	cmp         byte ptr[di],0F0h
+	jb          @@quit
+	cmp         byte ptr[di],0F7h
+	ja          @@quit
+	dec         di
+	dec         di
+	mov         byte ptr[di],1
+	inc         di
+	mov         al,[di+1]
+	sub         al,0A0h
+	mov         [di],al
+	ret
+@@not1:
+	cmp         byte ptr[di],8Fh
+	jne         @@quit
+	inc         di
+	cmp         byte ptr[di],0C0h
+	jb          @@quit
+	cmp         byte ptr[di],0C7h
+	ja          @@quit
+	dec         di
+	dec         di
+	mov         byte ptr[di],1
+	inc         di
+	mov         al,[di+1]
+	sub         al,68h
+	mov         [di],al
+@@quit:
+	ret
+
+checklst    proc        near
+	cmp         byte ptr[di],03
+	jne         @@exit
+	cmp         byte ptr[di+2],0feh
+	jnae        @@cont1
+@@sss:
+	dec         byte ptr[di]
+	ret
+@@cont1:
+	cmp         byte ptr[di+2],0f6h
+	je          @@sss
+	cmp         byte ptr[di+2],0f7h
+	je          @@sss
+@@exit:
+	ret
+checklst    endp
+
+checkbp     proc        near
+	push        [di+2]
+	cmp         flbp,1
+	jne         @@exit
+	and         byte ptr[di+2],46h
+	cmp         byte ptr[di+2],46h
+	jne         @@exit
+	inc         byte ptr[di]
+@@exit:
+	pop         [di+2]
+	ret
+checkbp     endp
+
+mov_optimize proc       near
+	push        di
+	cmp         mov_flg, 1
+	jne         @@exit
+	cmp         another_fl, 1
+	je          @@exit
+	inc         di
+	inc         di
+	cmp         byte ptr[di], 0C0h
+	jb          @@exit
+	dec         di
+	dec         di
+	mov         byte ptr[di], 2
+	cmp         byte ptr[di+1], 0C7h
+	jne         @@tmp1
+	inc         byte ptr[di]
+@@tmp1:
+	inc         di
+	mov         bl, [di]
+	mov         bh, [di+1]
+	sub         bh, 0C0h
+	mov         al, 0B0h
+	cmp         bl, 0C7h
+	jne         @@tmp2
+	add         al, 8
+@@tmp2:
+	mov         [di], al
+	or          [di], bh
+	inc         di
+	mov         ax, [di+1]
+	mov         [di], ax
+@@exit:
+	pop         di
+	ret
+mov_optimize endp
+
+transform   endp
+include     asm2.goo
+include     asm3.goo

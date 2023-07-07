@@ -1,0 +1,154 @@
+if_port	proc	near
+	cmp	word ptr[si],'NI'
+	jne	@@mor1
+	inc	si
+	inc	si
+	cmp	byte ptr[si],' '
+	je	$ + 5
+	jmp	@@exit
+	inc	si
+	mov	al,0ECh
+	mov	ah,0E4h
+@@entry:
+	cmp	word ptr[si],'LA'
+	jne        	@@tmp1
+@@entry1:
+	inc	si
+	inc	si
+	cmp	byte ptr[si],','
+	je	@@tmp2
+	cmp	byte ptr[si],' '
+	jne	@@exit
+	inc	si
+	cmp	byte ptr[si],','
+	jne	@@exit
+@@tmp2:
+	inc	si
+	cmp	byte ptr[si],' '
+	jne	@@tmp3
+	inc	si
+@@tmp3:
+	cmp	word ptr[si],'XD'
+	jne	@@tmp4
+	mov	byte ptr[di],1
+	inc	di
+	mov	[di],al
+	clc
+	ret
+@@tmp4:
+	mov	bx,ax
+	xchg	si,di
+	call	movaxnum
+	xchg	si,di
+	jc	@@exit
+	cmp	ah,0
+	jne	@@exit
+	mov	byte ptr[di],2
+	inc	di
+	mov	byte ptr[di],bh
+	inc	di
+	mov	byte ptr[di],al
+	clc
+	ret
+
+@@tmp1:
+	cmp	word ptr[si],'XA'
+	jne	@@exit
+	inc	al
+	inc	ah
+	jmp	@@entry1
+@@mor1:
+	cmp	word ptr[si],'UO'
+	jne	@@exit
+	inc	si
+	inc	si
+	cmp	word ptr[si],' T'
+	jne	@@exit
+	inc	si
+	inc	si
+	cmp	word ptr[si],'XD'
+	jne	@@tmp5
+	mov	bl,0EEh
+	inc	si
+	inc	si
+	jmp	@@cnt1
+@@tmp5:
+	xchg	si,di
+	call	movaxnum
+	xchg	si,di
+	jc	@@exit
+	cmp	ah,0
+	jne	@@exit
+	mov	bl,0E6h
+	mov	cx,10
+@@loop_1:
+	inc	si
+	cmp	byte ptr[si],','
+	je	@@tmp6
+	loop	@@loop_1
+	jmp	@@cnt1
+@@exit:
+	stc
+	ret
+@@cnt1:
+	cmp	byte ptr[si],','
+	je	@@tmp6
+	inc	si
+	cmp         byte ptr[si],','
+	jne	@@exit
+@@tmp6:
+	inc	si
+	cmp	byte ptr[si],' '
+	jne	@@tmp7
+	inc	si
+@@tmp7:
+	cmp	word ptr[si],'LA'
+	jne	@@tmp8
+@@tmp_:
+	mov	byte ptr[di],1
+	cmp	bl,0EEh
+	je          @@tmp9
+	cmp	bl,0EFh
+	je	@@tmp9
+	inc	byte ptr[di]
+@@tmp9:
+	inc	di
+	mov	byte ptr[di],bl
+	inc	di
+	mov	byte ptr[di],al
+	clc
+	ret
+@@tmp8:
+	cmp	word ptr[si],'XA'
+	jne	@@exit
+	inc	bl
+	jmp	@@tmp_
+if_port	endp
+
+xchg_opt	proc	near
+	cmp	byte ptr[di+1], 87h
+	jne	@@exit
+	mov	al, [di+2]
+	cmp	al, 0C0h
+	jb	@@exit
+	cmp	al, 0C7h
+	ja	@@tmp1
+	and	al, 7
+	or	al, 90h
+@@tmp2:
+	mov	byte ptr[di], 1
+	mov	byte ptr[di+1], al
+	jmp	@@exit
+@@tmp1:
+	mov	cl, al
+	and	cl, 7
+	or	cl, cl
+	jnz	@@exit
+	and	al, 38h
+	mov	cl, 3
+	shr	al, cl
+	or	al, 90h
+	jmp	@@tmp2
+@@exit:
+	ret
+xchg_opt	endp

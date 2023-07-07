@@ -1,0 +1,100 @@
+;jumps
+.186
+chk_spec    proc        near
+	mov         mov_flg, 0
+	push        si
+	push        offset __mov
+	push        4
+	call        strcmp
+	jc          other
+	add         si, 4
+	cmp         byte ptr[si+1],'S'
+	jne         first_nrml
+	cmp         byte ptr[si],'E'
+	jne         @@tmp1
+	mov         segreg, 0
+	jmp         short       @@cnt1
+@@tmp1:
+	cmp         byte ptr[si],'C'
+	jne         @@tmp2
+	mov         segreg, 1
+	jmp         short       @@cnt1
+@@tmp2:
+	cmp         byte ptr[si],'D'
+	jne         @@tmp3
+	mov         segreg, 3
+	jmp         short       @@cnt1
+@@tmp3:
+	cmp         byte ptr[si],'S'
+	jne         @@tmp4
+	mov         segreg, 2
+	jmp         short       @@cnt1
+@@tmp4:
+	stc
+	ret
+
+__mov       db          'MOV '
+segreg      db          0
+
+@@cnt1:
+	inc         si
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@cnt2
+	inc         si
+	cmp         byte ptr[si],','
+	je          @@cnt2
+	inc         si
+	cmp         byte ptr[si],','
+	jne         @@tmp4
+	inc         si
+@@cnt2:
+	cmp         byte ptr[si],' '
+	jne         @@cnt3
+	inc         si
+@@cnt3:
+	cmp         byte ptr[si],','
+	jne         @@tmp4
+
+	mov         byte ptr[si],' '
+	cmp         byte ptr[si+1],' '
+	jne         $ + 3
+	inc         si
+	push        si
+	mov         bx, offset regs16
+	call        if_reg
+	mov         ch, 2
+	pop         si
+	jnc         @@cnt4
+	call        ptrs
+	jc          @@tmp4
+@@cnt4:
+	mov         byte ptr[di], ch
+	inc         di
+	mov         byte ptr[di], 8Eh
+	inc         di
+	shl         segreg, 1
+	shl         segreg, 1
+	shl         segreg, 1
+	or          cl,segreg 
+	mov         [di], cl
+	inc         di
+	mov         [di], ax
+	clc
+	ret
+first_nrml:
+	stc
+	ret
+other:
+	stc
+	ret
+chk_spec    endp
+
+
+
+
+
+
+
+
+
